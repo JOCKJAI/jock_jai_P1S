@@ -9,6 +9,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 type QueueItem = { id: number; name: string; minutes: number; color: string };
+type PrinterStatus = {
+  bridge: 'demo' | 'setup_required' | 'connecting' | 'connected' | 'live' | 'offline' | 'error';
+  connected: boolean;
+  model: string;
+  state: string;
+  filename: string;
+  progress: number;
+  remainingMinutes: number;
+  layer: number;
+  totalLayers: number;
+  nozzleTemp: number;
+  bedTemp: number;
+  hasError: boolean;
+  updatedAt: string | null;
+};
 
 const coin = { value: 1, minutes: 15, label: 'PRINT SLOT' };
 
@@ -18,11 +33,19 @@ const starterQueue: QueueItem[] = [
   { id: 3, name: 'KAI', minutes: 30, color: '#4fd7ff' },
 ];
 
+const demoPrinter: PrinterStatus = {
+  bridge: 'demo', connected: false, model: 'Bambu Lab P1S', state: 'PRINTING',
+  filename: 'ROCKET_V3.3MF', progress: 68, remainingMinutes: 24,
+  layer: 816, totalLayers: 1200, nozzleTemp: 220, bedTemp: 55,
+  hasError: false, updatedAt: null,
+};
+
 export default function Home() {
   const [name, setName] = useState('');
   const [queue, setQueue] = useState<QueueItem[]>(starterQueue);
   const [isDropping, setIsDropping] = useState(false);
   const [notice, setNotice] = useState('');
+  const [printer, setPrinter] = useState<PrinterStatus>(demoPrinter);
 
   useEffect(() => {
     const saved = window.localStorage.getItem('coinprint-queue');
@@ -35,10 +58,38 @@ export default function Home() {
     }
   }, []);
 
+  useEffect(() => {
+    let active = true;
+
+    async function refreshPrinter() {
+      try {
+        const response = await fetch('http://127.0.0.1:8789/status', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Bridge unavailable');
+        const next = await response.json() as PrinterStatus;
+        if (active) setPrinter(next);
+      } catch {
+        if (active) setPrinter((current) => current.bridge === 'demo' ? current : { ...current, bridge: 'offline', connected: false });
+      }
+    }
+
+    refreshPrinter();
+    const timer = window.setInterval(refreshPrinter, 2500);
+    return () => { active = false; window.clearInterval(timer); };
+  }, []);
+
   const totalWait = useMemo(
     () => queue.reduce((sum, item) => sum + item.minutes, 0),
     [queue],
   );
+
+  const isLive = printer.bridge === 'live' && printer.connected;
+  const bridgeLabel = isLive
+    ? `P1S · ${printer.state}`
+    : printer.bridge === 'setup_required'
+      ? 'P1S BRIDGE · SETUP NEEDED'
+      : printer.bridge === 'connecting' || printer.bridge === 'connected'
+        ? 'P1S BRIDGE · CONNECTING'
+        : 'P1S BRIDGE · DEMO MODE';
 
   function joinQueue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -73,7 +124,7 @@ export default function Home() {
           <span>COINPRINT <b>LAB</b></span>
         </a>
         <div className="machine-status" role="status">
-          <span className="status-dot" /> PRINTER 01 · PRINTING
+          <span className={`status-dot ${isLive ? '' : 'offline'}`} /> {bridgeLabel}
         </div>
         <Badge className="queue-badge">{queue.length} IN QUEUE</Badge>
       </header>
@@ -90,16 +141,25 @@ export default function Home() {
             <div className="scanlines" aria-hidden="true" />
             <div className="coin-drop" aria-hidden="true">${coin.value}</div>
             <Image src="/pixel-printer.png" alt="一部正在列印橙色小火箭的像素風 3D printer" width={900} height={900} priority className="printer-art" />
-            <div className="print-label" aria-hidden="true"><span>NOW PRINTING</span><strong>ROCKET_V3.STL</strong></div>
+            <div className="print-label"><span>{isLive ? 'LIVE FROM P1S' : 'DEMO PREVIEW'}</span><strong>{printer.filename}</strong></div>
           </div>
 
           <div className="current-job">
             <div className="job-icon"><Printer aria-hidden="true" /></div>
             <div className="job-meta">
-              <div><strong>MING&apos;S ROCKET</strong><span>68%</span></div>
-              <div className="pixel-progress"><i /></div>
-              <p>Layer 816 / 1200 · 24 mins left</p>
+              <div><strong>{printer.state === 'IDLE' ? 'P1S READY' : printer.filename}</strong><span>{printer.progress}%</span></div>
+              <div className="pixel-progress"><i style={{ width: `${printer.progress}%` }} /></div>
+              <p>
+                {isLive
+                  ? `Layer ${printer.layer || '—'} / ${printer.totalLayers || '—'} · ${printer.remainingMinutes} mins left · ${Math.round(printer.nozzleTemp)}° / ${Math.round(printer.bedTemp)}°`
+                  : printer.bridge === 'setup_required'
+                    ? 'Add your P1S details to .env.local to go live'
+                    : 'Demo data · local P1S bridge is not connected'}
+              </p>
             </div>
+          </div>
+          <div className={`bridge-note ${isLive ? 'live' : ''}`}>
+            <span /> {isLive ? 'REAL-TIME P1S STATUS' : 'LOCAL BRIDGE · READ ONLY'}
           </div>
         </section>
 

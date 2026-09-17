@@ -37,6 +37,7 @@ body::before { content: ''; position: fixed; inset: 0; pointer-events: none; z-i
 .brand-mark svg { width: 20px; }
 .machine-status { font-size: 10px; color: #a9b9c4; letter-spacing: .13em; display: flex; align-items: center; gap: 9px; }
 .status-dot { width: 8px; height: 8px; background: var(--primary); box-shadow: 0 0 14px var(--primary); animation: blink 1.8s steps(2) infinite; }
+.status-dot.offline { background: #718091; box-shadow: none; }
 .queue-badge { justify-self: end; height: 27px; border-radius: 2px; border: 1px solid #314559; background: #121d29; color: #98ecff; font-size: 10px; letter-spacing: .09em; }
 
 .app-shell { min-height: calc(100dvh - 116px); display: grid; grid-template-columns: minmax(0, 1.48fr) minmax(390px, .82fr); }
@@ -70,6 +71,10 @@ h1 span { color: var(--primary); }
 .pixel-progress { height: 7px; background: #263442; margin: 8px 0 6px; padding: 1px; }
 .pixel-progress i { display: block; height: 100%; width: 68%; background: repeating-linear-gradient(90deg, var(--primary) 0 8px, #6ecf2e 8px 11px); box-shadow: 0 0 8px #9cff354d; }
 .job-meta p { margin: 0; color: #697d8d; font-size: 8px; }
+.bridge-note { position: relative; z-index: 4; width: fit-content; margin: 18px auto 0; display: flex; align-items: center; gap: 7px; color: #647788; font-size: 8px; letter-spacing: .12em; }
+.bridge-note > span { width: 6px; height: 6px; background: #647788; }
+.bridge-note.live { color: var(--primary); }
+.bridge-note.live > span { background: var(--primary); box-shadow: 0 0 10px var(--primary); animation: blink 1.8s steps(2) infinite; }
 
 .control-panel { padding: 38px clamp(24px, 3vw, 45px); background: linear-gradient(135deg, #0d1621, #091019 62%); }
 .panel-heading p { color: var(--accent); font-size: 9px; letter-spacing: .2em; margin: 0 0 9px; }
