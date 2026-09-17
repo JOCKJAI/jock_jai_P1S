@@ -8,14 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-type Coin = { value: number; minutes: number; label: string };
 type QueueItem = { id: number; name: string; minutes: number; color: string };
 
-const coins: Coin[] = [
-  { value: 1, minutes: 15, label: 'Quick' },
-  { value: 2, minutes: 30, label: 'Standard' },
-  { value: 5, minutes: 60, label: 'Big print' },
-];
+const coin = { value: 1, minutes: 15, label: 'PRINT SLOT' };
 
 const starterQueue: QueueItem[] = [
   { id: 1, name: 'MING', minutes: 24, color: '#ff774f' },
@@ -24,7 +19,6 @@ const starterQueue: QueueItem[] = [
 ];
 
 export default function Home() {
-  const [selectedCoin, setSelectedCoin] = useState<Coin>(coins[1]);
   const [name, setName] = useState('');
   const [queue, setQueue] = useState<QueueItem[]>(starterQueue);
   const [isDropping, setIsDropping] = useState(false);
@@ -59,8 +53,8 @@ export default function Home() {
         {
           id: Date.now(),
           name: cleanName.toUpperCase(),
-          minutes: selectedCoin.minutes,
-          color: selectedCoin.value === 1 ? '#abf23e' : selectedCoin.value === 2 ? '#4fd7ff' : '#ff774f',
+          minutes: coin.minutes,
+          color: '#abf23e',
         },
       ];
       setQueue(newQueue);
@@ -94,7 +88,7 @@ export default function Home() {
 
           <div className={`printer-stage ${isDropping ? 'is-dropping' : ''}`}>
             <div className="scanlines" aria-hidden="true" />
-            <div className="coin-drop" aria-hidden="true">${selectedCoin.value}</div>
+            <div className="coin-drop" aria-hidden="true">${coin.value}</div>
             <Image src="/pixel-printer.png" alt="一部正在列印橙色小火箭的像素風 3D printer" width={900} height={900} priority className="printer-art" />
             <div className="print-label" aria-hidden="true"><span>NOW PRINTING</span><strong>ROCKET_V3.STL</strong></div>
           </div>
@@ -116,13 +110,12 @@ export default function Home() {
 
           <form onSubmit={joinQueue}>
             <fieldset>
-              <legend><span>1</span> PICK A COIN</legend>
-              <div className="coin-grid">
-                {coins.map((coin) => (
-                  <button type="button" key={coin.value} onClick={() => setSelectedCoin(coin)} className={`coin-option ${selectedCoin.value === coin.value ? 'selected' : ''}`} aria-pressed={selectedCoin.value === coin.value}>
-                    <span className="coin-face">${coin.value}</span><strong>{coin.minutes} MIN</strong><small>{coin.label}</small>
-                  </button>
-                ))}
+              <legend><span>1</span> YOUR COIN</legend>
+              <div className="coin-grid single-coin">
+                <div className="coin-option selected">
+                  <span className="coin-face">${coin.value}</span>
+                  <span className="coin-details"><strong>{coin.minutes} MIN</strong><small>{coin.label}</small></span>
+                </div>
               </div>
             </fieldset>
 
@@ -135,7 +128,7 @@ export default function Home() {
             </label>
 
             <Button type="submit" disabled={!name.trim() || isDropping} className="insert-button">
-              <Coins aria-hidden="true" /> {isDropping ? 'COIN DROPPING...' : `INSERT $${selectedCoin.value} COIN`} <span aria-hidden="true">→</span>
+              <Coins aria-hidden="true" /> {isDropping ? 'COIN DROPPING...' : `INSERT $${coin.value} COIN`} <span aria-hidden="true">→</span>
             </Button>
             <p className={`success-message ${notice ? 'show' : ''}`} aria-live="polite"><Check aria-hidden="true" /> {notice}</p>
           </form>
