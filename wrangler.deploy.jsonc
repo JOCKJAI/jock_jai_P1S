@@ -19,5 +19,8 @@
       "migrations_dir": ".openai/drizzle"
     }
   ],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  "vars": {
+    "SUPABASE_URL": "https://illnzklyhohxpggqwzqo.supabase.co"
+  }
 }

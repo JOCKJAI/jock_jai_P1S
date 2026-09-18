@@ -19,9 +19,11 @@ export type PrinterStatus = {
   updatedAt: string | null;
 };
 
-type Bindings = Cloudflare.Env & {
+export type Bindings = Cloudflare.Env & {
   DB: D1Database;
   BRIDGE_INGEST_TOKEN?: string;
+  SUPABASE_URL?: string;
+  SUPABASE_SERVICE_ROLE_KEY?: string;
 };
 
 export function getBindings() {

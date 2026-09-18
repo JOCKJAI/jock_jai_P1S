@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Check, Coins, Printer, Sparkles, UserRound, X } from 'lucide-react';
+import { Check, Coins, LockKeyhole, Pencil, Printer, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,9 +35,15 @@ const demoPrinter: PrinterStatus = {
 
 export default function Home() {
   const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
   const [queue, setQueue] = useState<QueueItem[]>([]);
   const [isDropping, setIsDropping] = useState(false);
   const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+  const [editItem, setEditItem] = useState<QueueItem | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editPassword, setEditPassword] = useState('');
+  const [editError, setEditError] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
   const [notice, setNotice] = useState('');
   const [printer, setPrinter] = useState<PrinterStatus>(demoPrinter);
 
@@ -64,13 +70,18 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!isNameDialogOpen) return;
+    if (!isNameDialogOpen && !editItem) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setIsNameDialogOpen(false);
         setName('');
+        setPassword('');
+        setEditItem(null);
+        setEditName('');
+        setEditPassword('');
+        setEditError('');
       }
     };
     window.addEventListener('keydown', closeOnEscape);
@@ -78,7 +89,7 @@ export default function Home() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', closeOnEscape);
     };
-  }, [isNameDialogOpen]);
+  }, [isNameDialogOpen, editItem]);
 
   const isLive = printer.bridge === 'live' && printer.connected;
   const printerAnimation = printer.hasError || printer.state === 'ERROR'
@@ -105,7 +116,7 @@ export default function Home() {
   async function joinQueue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const cleanName = name.trim().slice(0, 16);
-    if (!cleanName || isDropping) return;
+    if (!cleanName || password.length < 6 || isDropping) return;
     setIsNameDialogOpen(false);
     setIsDropping(true);
     setNotice('');
@@ -115,19 +126,80 @@ export default function Home() {
         const response = await fetch('/api/queue', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: cleanName }),
+          body: JSON.stringify({ name: cleanName, password }),
         });
-        if (!response.ok) throw new Error('Queue request failed');
-        const result = await response.json() as { queue: QueueItem[] };
+        const result = await response.json() as { queue?: QueueItem[]; error?: string };
+        if (!response.ok || !result.queue) throw new Error(result.error || '未能加入隊伍');
         setQueue(result.queue);
         setNotice(`${cleanName}，你已經排到第 ${result.queue.length} 位！`);
-      } catch {
-        setNotice('未能加入隊伍，請再試一次。');
+      } catch (error) {
+        setNotice(error instanceof Error ? error.message : '未能加入隊伍，請再試一次。');
       } finally {
         setName('');
+        setPassword('');
         setIsDropping(false);
       }
     }, 780);
+  }
+
+  function openEditDialog(item: QueueItem) {
+    setNotice('');
+    setEditItem(item);
+    setEditName(item.name);
+    setEditPassword('');
+    setEditError('');
+  }
+
+  function closeEditDialog() {
+    setEditItem(null);
+    setEditName('');
+    setEditPassword('');
+    setEditError('');
+  }
+
+  async function updateQueueItem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editItem || !editName.trim() || !editPassword || isEditing) return;
+    setIsEditing(true);
+    setEditError('');
+    try {
+      const response = await fetch('/api/queue', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editItem.id, name: editName.trim(), password: editPassword }),
+      });
+      const result = await response.json() as { queue?: QueueItem[]; error?: string };
+      if (!response.ok || !result.queue) throw new Error(result.error || '未能更新排隊紀錄');
+      setQueue(result.queue);
+      setNotice(`${editName.trim().toUpperCase()} 嘅排隊紀錄已更新。`);
+      closeEditDialog();
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : '未能更新排隊紀錄');
+    } finally {
+      setIsEditing(false);
+    }
+  }
+
+  async function removeQueueItem() {
+    if (!editItem || !editPassword || isEditing) return;
+    setIsEditing(true);
+    setEditError('');
+    try {
+      const response = await fetch('/api/queue', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: editItem.id, password: editPassword }),
+      });
+      const result = await response.json() as { queue?: QueueItem[]; error?: string };
+      if (!response.ok || !result.queue) throw new Error(result.error || '未能取消排隊');
+      setQueue(result.queue);
+      setNotice(`${editItem.name} 已取消排隊。`);
+      closeEditDialog();
+    } catch (error) {
+      setEditError(error instanceof Error ? error.message : '未能取消排隊');
+    } finally {
+      setIsEditing(false);
+    }
   }
 
   return (
@@ -215,7 +287,12 @@ export default function Home() {
                   <span className="queue-number">{String(index + 1).padStart(2, '0')}</span>
                   <span className="avatar" style={{ '--avatar': item.color } as React.CSSProperties}>{item.name.slice(0, 1)}</span>
                   <span className="queue-name"><strong>{item.name}</strong><small>{index === 0 ? 'PRINTING NOW' : 'IN QUEUE'}</small></span>
-                  <span className="queue-state">{index === 0 ? <i className="mini-bars" /> : index === 1 ? 'NEXT' : 'QUEUED'}</span>
+                  <span className="queue-actions">
+                    <span className="queue-state">{index === 0 ? <i className="mini-bars" /> : index === 1 ? 'NEXT' : 'QUEUED'}</span>
+                    <button type="button" className="queue-edit" onClick={() => openEditDialog(item)} aria-label={`修改 ${item.name} 排隊紀錄`}>
+                      <Pencil aria-hidden="true" />
+                    </button>
+                  </span>
                 </li>
               ))}
             </ol>
@@ -226,15 +303,15 @@ export default function Home() {
       <footer><span>OPEN 10:00—22:00 · MAKER SPACE, 2/F</span><span>ONE COIN · ONE PRINT · BE NICE ✦</span></footer>
 
       {isNameDialogOpen && (
-        <div className="modal-layer" onMouseDown={(event) => { if (event.target === event.currentTarget) { setIsNameDialogOpen(false); setName(''); } }}>
+        <div className="modal-layer" onMouseDown={(event) => { if (event.target === event.currentTarget) { setIsNameDialogOpen(false); setName(''); setPassword(''); } }}>
           <section className="name-dialog" role="dialog" aria-modal="true" aria-labelledby="coin-dialog-title" aria-describedby="coin-dialog-description">
-            <button type="button" className="modal-close" onClick={() => { setIsNameDialogOpen(false); setName(''); }} aria-label="關閉">
+            <button type="button" className="modal-close" onClick={() => { setIsNameDialogOpen(false); setName(''); setPassword(''); }} aria-label="關閉">
               <X aria-hidden="true" />
             </button>
             <header className="dialog-header">
               <div className="dialog-token" aria-hidden="true"><span>{coin.mark}</span></div>
               <h2 id="coin-dialog-title">攞咗一個 JW coin</h2>
-              <p id="coin-dialog-description">輸入你個名，確認後銀仔就會投落 printer，完成排隊。</p>
+              <p id="coin-dialog-description">輸入你個名同修改密碼，確認後銀仔就會投落 printer。</p>
             </header>
             <form onSubmit={joinQueue} className="dialog-form">
               <label className="name-field">
@@ -244,10 +321,58 @@ export default function Home() {
                   <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="輸入你個名..." maxLength={16} autoComplete="name" required autoFocus aria-label="你的名字" />
                 </div>
               </label>
+              <label className="name-field password-field">
+                <span><b>2</b> EDIT PASSWORD</span>
+                <div className="input-wrap">
+                  <LockKeyhole aria-hidden="true" />
+                  <Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="最少 6 個字元..." minLength={6} maxLength={64} autoComplete="new-password" required aria-label="修改排隊紀錄的密碼" />
+                </div>
+              </label>
+              <p className="dialog-note">只用作之後改名或取消排隊；系統只會儲存加密驗證值。</p>
               <div className="dialog-actions">
-                <Button type="button" variant="outline" onClick={() => { setIsNameDialogOpen(false); setName(''); }}>放返低</Button>
-                <Button type="submit" disabled={!name.trim()} className="confirm-coin">
+                <Button type="button" variant="outline" onClick={() => { setIsNameDialogOpen(false); setName(''); setPassword(''); }}>放返低</Button>
+                <Button type="submit" disabled={!name.trim() || password.length < 6} className="confirm-coin">
                   <Coins aria-hidden="true" /> 確定投幣
+                </Button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {editItem && (
+        <div className="modal-layer" onMouseDown={(event) => { if (event.target === event.currentTarget && !isEditing) closeEditDialog(); }}>
+          <section className="name-dialog edit-dialog" role="dialog" aria-modal="true" aria-labelledby="edit-dialog-title" aria-describedby="edit-dialog-description">
+            <button type="button" className="modal-close" onClick={closeEditDialog} disabled={isEditing} aria-label="關閉">
+              <X aria-hidden="true" />
+            </button>
+            <header className="dialog-header">
+              <div className="dialog-token" aria-hidden="true"><span>{coin.mark}</span></div>
+              <h2 id="edit-dialog-title">修改排隊紀錄</h2>
+              <p id="edit-dialog-description">輸入加入排隊時設定嘅密碼。現有四位排隊者預設 PIN 係 0000。</p>
+            </header>
+            <form onSubmit={updateQueueItem} className="dialog-form">
+              <label className="name-field">
+                <span><b>1</b> DISPLAY NAME</span>
+                <div className="input-wrap">
+                  <UserRound aria-hidden="true" />
+                  <Input value={editName} onChange={(event) => setEditName(event.target.value)} maxLength={16} required autoFocus aria-label="更新名字" />
+                </div>
+              </label>
+              <label className="name-field password-field">
+                <span><b>2</b> PASSWORD / PIN</span>
+                <div className="input-wrap">
+                  <LockKeyhole aria-hidden="true" />
+                  <Input type="password" value={editPassword} onChange={(event) => setEditPassword(event.target.value)} maxLength={64} autoComplete="current-password" required aria-label="排隊紀錄密碼" />
+                </div>
+              </label>
+              <p className={`edit-feedback ${editError ? 'show' : ''}`} role="alert">{editError}</p>
+              <div className="dialog-actions edit-actions">
+                <Button type="button" variant="outline" className="danger-action" onClick={removeQueueItem} disabled={!editPassword || isEditing}>
+                  <Trash2 aria-hidden="true" /> 取消排隊
+                </Button>
+                <Button type="submit" disabled={!editName.trim() || !editPassword || isEditing} className="confirm-coin">
+                  <Check aria-hidden="true" /> 儲存修改
                 </Button>
               </div>
             </form>

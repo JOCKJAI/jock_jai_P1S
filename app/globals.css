@@ -118,10 +118,18 @@ h1 span { color: var(--primary); }
 .modal-close:hover, .modal-close:focus-visible { color: #fff; background: #182534; outline: 1px solid #486078; }
 .modal-close svg { width: 16px; }
 .dialog-form { margin-top: 10px; }
+.password-field { margin-top: 17px; }
+.dialog-note { margin: 10px 0 0; color: #617687; font-size: 8px; line-height: 1.55; }
 .dialog-actions { margin: 22px -24px -24px; padding: 16px 24px; display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid #263747; background: #081019; }
 .dialog-actions button { border-radius: 0; font-size: 9px; font-weight: 900; letter-spacing: .06em; }
+.dialog-actions svg { width: 14px; }
 .confirm-coin { color: #081007; background: var(--primary); border: 1px solid #d6ff91; box-shadow: 4px 4px 0 #40680b; }
 .confirm-coin:hover { background: #c9ff73; }
+.edit-actions { justify-content: space-between; }
+.danger-action { color: #ff8d7b; border-color: #6a342c; background: #1b0d0c; }
+.danger-action:hover { color: #fff; border-color: #ff755f; background: #391511; }
+.edit-feedback { min-height: 14px; margin: 10px 0 -7px; color: #ff8975; font-size: 8px; opacity: 0; }
+.edit-feedback.show { opacity: 1; }
 
 .queue-card { margin-top: 20px; border-top: 1px solid #2b3949; padding-top: 23px; }
 .queue-header { display: flex; justify-content: space-between; align-items: center; }
@@ -138,6 +146,10 @@ h1 span { color: var(--primary); }
 .queue-name { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .queue-name strong { overflow: hidden; text-overflow: ellipsis; font-size: 10px; } .queue-name small { color: #627787; font-size: 7px; letter-spacing: .06em; } .queue-state { color: #91a3af; font-size: 8px; }
 .active-job .queue-state { color: var(--primary); }
+.queue-actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
+.queue-edit { width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 1px solid #314153; background: #0a121b; color: #73899a; }
+.queue-edit:hover, .queue-edit:focus-visible { color: var(--primary); border-color: #6a9a30; background: #111e18; outline: 0; }
+.queue-edit svg { width: 12px; }
 .mini-bars { display: block; width: 25px; height: 13px; background: linear-gradient(to top, var(--primary) 0 100%) 0 100%/4px 50% no-repeat, linear-gradient(to top, var(--primary) 0 100%) 7px 100%/4px 90% no-repeat, linear-gradient(to top, var(--primary) 0 100%) 14px 100%/4px 65% no-repeat, linear-gradient(to top, var(--primary) 0 100%) 21px 100%/4px 100% no-repeat; animation: bars .7s steps(2) infinite alternate; }
 
 footer { min-height: 42px; display: flex; justify-content: space-between; align-items: center; padding: 0 clamp(20px, 4vw, 68px); color: #4f6473; background: #05080d; border-top: 1px solid #182431; font-size: 8px; letter-spacing: .09em; }
