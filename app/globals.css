@@ -138,18 +138,18 @@ h1 span { color: var(--primary); }
 .wait-time { display: grid; grid-template-columns: 17px auto; align-items: center; column-gap: 6px; color: #8eeeff; }
 .wait-time svg { width: 16px; grid-row: span 2; } .wait-time strong { font-size: 13px; line-height: 1; } .wait-time small { font-size: 7px; color: #637787; }
 .queue-list { list-style: none; margin: 14px 0 0; padding: 0; max-height: 230px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #33475b transparent; }
-.queue-list li { min-height: 53px; display: grid; grid-template-columns: 27px 34px minmax(0,1fr) auto; gap: 9px; align-items: center; padding: 8px 9px; border-bottom: 1px solid #1e2a37; }
+.queue-list li { min-height: 53px; border-bottom: 1px solid #1e2a37; }
 .queue-list li.queue-empty { display: grid; grid-template-columns: 1fr; place-items: center; min-height: 90px; color: #617687; font-size: 8px; text-align: center; }
-.queue-list li.active-job { background: #101e23; border-left: 2px solid var(--primary); }
+.queue-list li.active-job { border-left: 2px solid var(--primary); }
+.queue-row { width: 100%; min-height: 52px; display: grid; grid-template-columns: 27px 34px minmax(0,1fr) auto; gap: 9px; align-items: center; padding: 8px 9px; border: 0; color: inherit; background: transparent; text-align: left; cursor: pointer; transition: background-color 120ms ease, box-shadow 120ms ease; }
+.active-job .queue-row { background: #101e23; }
+.queue-row:hover { background: #13232b; box-shadow: inset 3px 0 0 #6e9b36; }
+.queue-row:focus-visible { background: #13232b; box-shadow: inset 0 0 0 1px var(--primary), inset 3px 0 0 var(--primary); outline: 0; }
 .queue-number { color: #516474; font-size: 8px; }
 .avatar { width: 30px; height: 30px; display: grid; place-items: center; color: #071018; background: var(--avatar); font-size: 11px; font-weight: 1000; box-shadow: 3px 3px 0 color-mix(in srgb, var(--avatar), #000 55%); }
 .queue-name { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .queue-name strong { overflow: hidden; text-overflow: ellipsis; font-size: 10px; } .queue-name small { color: #627787; font-size: 7px; letter-spacing: .06em; } .queue-state { color: #91a3af; font-size: 8px; }
 .active-job .queue-state { color: var(--primary); }
-.queue-actions { display: flex; align-items: center; justify-content: flex-end; gap: 7px; }
-.queue-edit { width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 1px solid #314153; background: #0a121b; color: #73899a; }
-.queue-edit:hover, .queue-edit:focus-visible { color: var(--primary); border-color: #6a9a30; background: #111e18; outline: 0; }
-.queue-edit svg { width: 12px; }
 .mini-bars { display: block; width: 25px; height: 13px; background: linear-gradient(to top, var(--primary) 0 100%) 0 100%/4px 50% no-repeat, linear-gradient(to top, var(--primary) 0 100%) 7px 100%/4px 90% no-repeat, linear-gradient(to top, var(--primary) 0 100%) 14px 100%/4px 65% no-repeat, linear-gradient(to top, var(--primary) 0 100%) 21px 100%/4px 100% no-repeat; animation: bars .7s steps(2) infinite alternate; }
 
 footer { min-height: 42px; display: flex; justify-content: space-between; align-items: center; padding: 0 clamp(20px, 4vw, 68px); color: #4f6473; background: #05080d; border-top: 1px solid #182431; font-size: 8px; letter-spacing: .09em; }

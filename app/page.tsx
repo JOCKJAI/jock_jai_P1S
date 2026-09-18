@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Check, Coins, LockKeyhole, Pencil, Printer, Sparkles, Trash2, UserRound, X } from 'lucide-react';
+import { Check, Coins, LockKeyhole, Printer, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -284,15 +284,12 @@ export default function Home() {
               {queue.length === 0 && <li className="queue-empty">暫時未有人排隊，攞第一個 JW coin 啦。</li>}
               {queue.map((item, index) => (
                 <li key={item.id} className={index === 0 ? 'active-job' : ''}>
-                  <span className="queue-number">{String(index + 1).padStart(2, '0')}</span>
-                  <span className="avatar" style={{ '--avatar': item.color } as React.CSSProperties}>{item.name.slice(0, 1)}</span>
-                  <span className="queue-name"><strong>{item.name}</strong><small>{index === 0 ? 'PRINTING NOW' : 'IN QUEUE'}</small></span>
-                  <span className="queue-actions">
+                  <button type="button" className="queue-row" onClick={() => openEditDialog(item)} aria-label={`修改 ${item.name} 排隊紀錄`}>
+                    <span className="queue-number">{String(index + 1).padStart(2, '0')}</span>
+                    <span className="avatar" style={{ '--avatar': item.color } as React.CSSProperties}>{item.name.slice(0, 1)}</span>
+                    <span className="queue-name"><strong>{item.name}</strong><small>{index === 0 ? 'PRINTING NOW' : 'IN QUEUE'}</small></span>
                     <span className="queue-state">{index === 0 ? <i className="mini-bars" /> : index === 1 ? 'NEXT' : 'QUEUED'}</span>
-                    <button type="button" className="queue-edit" onClick={() => openEditDialog(item)} aria-label={`修改 ${item.name} 排隊紀錄`}>
-                      <Pencil aria-hidden="true" />
-                    </button>
-                  </span>
+                  </button>
                 </li>
               ))}
             </ol>
