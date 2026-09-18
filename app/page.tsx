@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Check, Coins, Printer, Sparkles, UserRound } from 'lucide-react';
+import { Check, Coins, Printer, Sparkles, UserRound, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,7 @@ export default function Home() {
   const [name, setName] = useState('');
   const [queue, setQueue] = useState<QueueItem[]>(starterQueue);
   const [isDropping, setIsDropping] = useState(false);
+  const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const [printer, setPrinter] = useState<PrinterStatus>(demoPrinter);
 
@@ -76,6 +77,23 @@ export default function Home() {
     return () => { active = false; window.clearInterval(timer); };
   }, []);
 
+  useEffect(() => {
+    if (!isNameDialogOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsNameDialogOpen(false);
+        setName('');
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [isNameDialogOpen]);
+
   const isLive = printer.bridge === 'live' && printer.connected;
   const printerAnimation = printer.hasError || printer.state === 'ERROR'
     ? 'error'
@@ -102,6 +120,7 @@ export default function Home() {
     event.preventDefault();
     const cleanName = name.trim().slice(0, 16);
     if (!cleanName || isDropping) return;
+    setIsNameDialogOpen(false);
     setIsDropping(true);
     setNotice('');
 
@@ -140,12 +159,23 @@ export default function Home() {
           <div className="hero-copy">
             <p className="eyebrow"><Sparkles aria-hidden="true" /> MAKER STATION 01</p>
             <h1 id="page-title">INSERT COIN.<br /><span>PRINT SOMETHING.</span></h1>
-            <p className="intro">揀一個 print slot，留低你個名，再將銀仔投落部機。就係咁簡單。</p>
+            <p className="intro">由左邊玻璃錢罐攞個 JW coin，入名確認，銀仔就會投落部機。</p>
           </div>
 
           <div className={`printer-stage state-${printerAnimation} ${isDropping ? 'is-dropping' : ''}`}>
             <div className="scanlines" aria-hidden="true" />
             <div className="coin-drop" aria-hidden="true">{coin.mark}</div>
+            <button
+              type="button"
+              className={`coin-jar ${isNameDialogOpen ? 'coin-is-picked' : ''}`}
+              onClick={() => { setNotice(''); setIsNameDialogOpen(true); }}
+              disabled={isDropping}
+              aria-label="從玻璃錢罐攞一個 JW coin"
+            >
+              <img src="/coin-jar.png" alt="裝滿金幣的像素風玻璃錢罐" width={1254} height={1254} />
+              <span className="jar-coin" aria-hidden="true">{coin.mark}</span>
+              <span className="jar-hint">攞幣排隊</span>
+            </button>
             <picture className="printer-picture">
               <source media="(prefers-reduced-motion: reduce)" srcSet="/pixel-printer.png" />
               <img
@@ -181,32 +211,9 @@ export default function Home() {
 
         <aside className="control-panel" aria-label="Join the 3D printing queue">
           <div className="panel-heading">
-            <p>YOUR TURN</p><h2>拎個籌，排隊印。</h2><span>每個 coin 代表一個列印時段。</span>
+            <p>LIVE LINE</p><h2>排隊名單</h2><span>由左邊錢罐攞 JW coin 加入。</span>
           </div>
-
-          <form onSubmit={joinQueue}>
-            <fieldset>
-              <legend><span>1</span> YOUR COIN</legend>
-              <div className="coin-grid single-coin">
-                <div className="coin-option selected">
-                  <span className="coin-face">{coin.mark}</span>
-                </div>
-              </div>
-            </fieldset>
-
-            <label className="name-field">
-              <span><b>2</b> WHO&apos;S PRINTING?</span>
-              <div className="input-wrap">
-                <UserRound aria-hidden="true" />
-                <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="輸入你個名..." maxLength={16} autoComplete="name" required aria-label="你的名字" />
-              </div>
-            </label>
-
-            <Button type="submit" disabled={!name.trim() || isDropping} className="insert-button">
-              <Coins aria-hidden="true" /> {isDropping ? 'COIN DROPPING...' : `INSERT ${coin.mark} COIN`} <span aria-hidden="true">→</span>
-            </Button>
-            <p className={`success-message ${notice ? 'show' : ''}`} aria-live="polite"><Check aria-hidden="true" /> {notice}</p>
-          </form>
+          <p className={`success-message queue-success ${notice ? 'show' : ''}`} aria-live="polite"><Check aria-hidden="true" /> {notice}</p>
 
           <div className="queue-card">
             <div className="queue-header">
@@ -227,6 +234,36 @@ export default function Home() {
       </div>
 
       <footer><span>OPEN 10:00—22:00 · MAKER SPACE, 2/F</span><span>ONE COIN · ONE PRINT · BE NICE ✦</span></footer>
+
+      {isNameDialogOpen && (
+        <div className="modal-layer" onMouseDown={(event) => { if (event.target === event.currentTarget) { setIsNameDialogOpen(false); setName(''); } }}>
+          <section className="name-dialog" role="dialog" aria-modal="true" aria-labelledby="coin-dialog-title" aria-describedby="coin-dialog-description">
+            <button type="button" className="modal-close" onClick={() => { setIsNameDialogOpen(false); setName(''); }} aria-label="關閉">
+              <X aria-hidden="true" />
+            </button>
+            <header className="dialog-header">
+              <div className="dialog-token" aria-hidden="true">{coin.mark}</div>
+              <h2 id="coin-dialog-title">攞咗一個 JW coin</h2>
+              <p id="coin-dialog-description">輸入你個名，確認後銀仔就會投落 printer，完成排隊。</p>
+            </header>
+            <form onSubmit={joinQueue} className="dialog-form">
+              <label className="name-field">
+                <span><b>1</b> WHO&apos;S PRINTING?</span>
+                <div className="input-wrap">
+                  <UserRound aria-hidden="true" />
+                  <Input value={name} onChange={(event) => setName(event.target.value)} placeholder="輸入你個名..." maxLength={16} autoComplete="name" required autoFocus aria-label="你的名字" />
+                </div>
+              </label>
+              <div className="dialog-actions">
+                <Button type="button" variant="outline" onClick={() => { setIsNameDialogOpen(false); setName(''); }}>放返低</Button>
+                <Button type="submit" disabled={!name.trim()} className="confirm-coin">
+                  <Coins aria-hidden="true" /> 確定投幣
+                </Button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </main>
   );
 }
