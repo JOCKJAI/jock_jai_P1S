@@ -50,28 +50,28 @@ h1 { margin: 0; font-size: clamp(42px, 6vw, 83px); line-height: .89; letter-spac
 h1 span { color: var(--primary); }
 .intro { max-width: 515px; color: #9eb0bf; line-height: 1.7; font-size: 13px; margin: 23px 0 0; }
 
-.printer-stage { min-height: 380px; position: relative; z-index: 2; display: grid; place-items: center; margin: -28px auto -48px; max-width: 760px; }
+.printer-stage { position: relative; z-index: 2; width: min(100%, 720px); aspect-ratio: 3 / 2; margin: -28px auto -48px; }
 .printer-stage::before { content: ''; position: absolute; width: 74%; height: 62%; top: 24%; border-radius: 50%; background: #1acfff1f; filter: blur(35px); }
-.scanlines { position: absolute; width: 88%; height: 78%; border-left: 1px solid #2c4c62; border-right: 1px solid #2c4c62; }
+.scanlines { position: absolute; inset: 7% 0 3%; border-left: 1px solid #2c4c62; border-right: 1px solid #2c4c62; }
 .scanlines::before, .scanlines::after { content: ''; position: absolute; left: -8px; right: -8px; height: 1px; background: #35546b; }
 .scanlines::before { top: 0; } .scanlines::after { bottom: 0; }
 .printer-picture { display: contents; }
-.printer-art { position: relative; width: min(67%, 520px); height: auto; margin-left: 10%; z-index: 2; image-rendering: pixelated; filter: drop-shadow(0 25px 35px rgba(0,0,0,.55)); }
+.printer-art { position: absolute; left: 38.4%; bottom: 0; width: auto; height: 100%; margin: 0; z-index: 2; image-rendering: pixelated; filter: drop-shadow(0 25px 35px rgba(0,0,0,.55)); }
 .state-paused::before { background: #ffb22e1f; }
 .state-error::before { background: #ff3f3f26; }
-.coin-jar { position: absolute; left: 0; bottom: 15%; z-index: 5; width: min(25%, 188px); padding: 0; border: 0; background: transparent; color: inherit; image-rendering: pixelated; transition: transform .18s steps(2), filter .18s; }
-.coin-jar img { display: block; width: 100%; height: auto; filter: drop-shadow(7px 12px 12px rgba(0,0,0,.5)); transition: transform .18s steps(2), filter .18s; }
-.coin-jar:hover img, .coin-jar:focus-visible img { transform: translateY(-4px); filter: drop-shadow(7px 16px 12px rgba(0,0,0,.58)) brightness(1.08); }
+.coin-jar { position: absolute; left: 0; bottom: 0; z-index: 5; width: 39.1%; height: 100%; padding: 0; border: 0; background: transparent; color: inherit; image-rendering: pixelated; transition: transform .18s steps(2), filter .18s; }
+.coin-jar img { display: block; width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(7px 12px 12px rgba(0,0,0,.5)); transition: transform .18s steps(2), filter .18s; }
+.coin-jar:hover img, .coin-jar:focus-visible img { transform: translateY(-4px); filter: drop-shadow(7px 16px 12px rgba(0,0,0,.58)) brightness(1.04); }
 .coin-jar:focus-visible { outline: 2px solid var(--primary); outline-offset: 5px; }
 .coin-jar:disabled { cursor: wait; }
-.jar-coin { position: absolute; left: 50%; top: 5%; z-index: 2; display: grid; place-items: center; width: 46px; aspect-ratio: 1; border-radius: 50%; color: #5b3400; background: #ffc94c; border: 6px double #8e5b00; box-shadow: 4px 5px 0 #5d3200, 0 0 16px #ffbe3d66; font-size: 13px; font-weight: 1000; opacity: 0; transform: translate(-50%, 14px) rotate(-5deg) scale(.8); transition: transform .28s steps(3), opacity .22s ease-out; }
+.jar-coin { position: absolute; left: 55%; top: 32%; z-index: 2; display: grid; place-items: center; width: 46px; aspect-ratio: 1; border-radius: 50%; color: #5b3400; background: #ffc94c; border: 6px double #8e5b00; box-shadow: 4px 5px 0 #5d3200, 0 0 16px #ffbe3d66; font-size: 13px; font-weight: 1000; opacity: 0; transform: translate(-50%, 14px) rotate(-5deg) scale(.8); transition: transform .28s steps(3), opacity .22s ease-out; }
 .coin-jar:hover .jar-coin, .coin-jar:focus-visible .jar-coin, .coin-jar:active .jar-coin { opacity: 1; transform: translate(-50%, -20px) rotate(8deg) scale(1.06); }
 .coin-jar.coin-is-picked .jar-coin { transform: translate(-50%, -92px) rotate(18deg) scale(1.1); opacity: 0; }
-.jar-hint { position: absolute; left: 50%; bottom: -8px; width: max-content; transform: translateX(-50%); padding: 6px 8px; color: #071018; background: var(--primary); border: 1px solid #d8ff99; box-shadow: 4px 4px 0 #36570c; font-size: 7px; font-weight: 1000; letter-spacing: .08em; }
-.print-label { position: absolute; left: 6%; top: 43%; display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; background: #09111ddb; border-left: 3px solid #ff754d; z-index: 3; }
+.jar-hint { position: absolute; left: 55%; bottom: 4%; width: max-content; transform: translateX(-50%); padding: 6px 8px; color: var(--primary); background: #0a141ee8; border: 1px solid #55782d; box-shadow: 4px 4px 0 #030608; font-size: 7px; font-weight: 1000; letter-spacing: .08em; }
+.print-label { position: absolute; left: 1%; top: 12%; display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; background: #09111ddb; border-left: 3px solid #ff754d; z-index: 3; }
 .print-label span { color: #8796a1; font-size: 8px; letter-spacing: .16em; }
 .print-label strong { font-size: 10px; color: #ffb08d; }
-.coin-drop { display: none; position: absolute; z-index: 7; top: 4%; right: 25%; width: 62px; aspect-ratio: 1; place-items: center; border-radius: 50%; background: #ffc94c; color: #5d3300; border: 7px double #8e5b00; font-weight: 1000; box-shadow: 6px 7px 0 #5d3200; }
+.coin-drop { display: none; position: absolute; z-index: 7; top: 5%; left: 69%; width: 62px; aspect-ratio: 1; place-items: center; border-radius: 50%; background: #ffc94c; color: #5d3300; border: 7px double #8e5b00; font-weight: 1000; box-shadow: 6px 7px 0 #5d3200; }
 .is-dropping .coin-drop { display: grid; animation: coinDrop .78s cubic-bezier(.3,.8,.5,1) forwards; }
 .is-dropping .printer-art { animation: machineShake .12s steps(2) .63s 2; }
 
@@ -152,7 +152,7 @@ footer { min-height: 42px; display: flex; justify-content: space-between; align-
 
 @media (max-width: 640px) {
   .topbar { height: 64px; padding: 0 16px; } .brand { font-size: 14px; } .brand-mark { width: 31px; height: 31px; box-shadow: 3px 3px 0 #253445; } .queue-badge { font-size: 8px; }
-  .hero-panel { padding: 34px 19px 28px; } .intro { font-size: 11px; } .printer-stage { min-height: 320px; margin: -5px -20px -35px; } .printer-art { width: 78%; margin-left: 15%; } .coin-jar { left: 1%; bottom: 18%; width: 30%; } .jar-coin { width: 38px; font-size: 10px; } .jar-hint { font-size: 6px; padding: 5px 6px; } .print-label { display: none; } .current-job { grid-template-columns: 37px 1fr; padding: 10px; } .job-icon { width: 36px; height: 36px; }
+  .hero-panel { padding: 34px 19px 28px; } .intro { font-size: 11px; } .printer-stage { width: calc(100% + 20px); margin: -5px -10px -35px; } .jar-coin { width: 38px; font-size: 10px; } .jar-hint { font-size: 6px; padding: 5px 6px; } .print-label { display: none; } .current-job { grid-template-columns: 37px 1fr; padding: 10px; } .job-icon { width: 36px; height: 36px; }
   .control-panel { display: block; padding: 32px 19px; } .queue-card { margin-top: 26px; padding: 23px 0 0; border-left: 0; border-top: 1px solid #293847; }
   footer { gap: 16px; padding: 13px 19px; flex-direction: column; align-items: flex-start; }
 }
