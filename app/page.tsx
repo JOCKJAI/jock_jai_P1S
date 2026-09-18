@@ -164,7 +164,7 @@ export default function Home() {
 
           <div className={`printer-stage state-${printerAnimation} ${isDropping ? 'is-dropping' : ''}`}>
             <div className="scanlines" aria-hidden="true" />
-            <div className="coin-drop" aria-hidden="true">{coin.mark}</div>
+            <div className="coin-drop" aria-hidden="true"><span>{coin.mark}</span></div>
             <button
               type="button"
               className={`coin-jar ${isNameDialogOpen ? 'coin-is-picked' : ''}`}
@@ -173,7 +173,7 @@ export default function Home() {
               aria-label="從玻璃錢罐攞一個 JW coin"
             >
               <img src="/key-visual-jar.png" alt="裝滿金幣的像素風玻璃錢罐" width={600} height={1024} />
-              <span className="jar-coin" aria-hidden="true">{coin.mark}</span>
+              <span className="jar-coin" aria-hidden="true"><span>{coin.mark}</span></span>
               <span className="jar-hint">攞幣排隊</span>
             </button>
             <picture className="printer-picture">
@@ -242,7 +242,7 @@ export default function Home() {
               <X aria-hidden="true" />
             </button>
             <header className="dialog-header">
-              <div className="dialog-token" aria-hidden="true">{coin.mark}</div>
+              <div className="dialog-token" aria-hidden="true"><span>{coin.mark}</span></div>
               <h2 id="coin-dialog-title">攞咗一個 JW coin</h2>
               <p id="coin-dialog-description">輸入你個名，確認後銀仔就會投落 printer，完成排隊。</p>
             </header>
