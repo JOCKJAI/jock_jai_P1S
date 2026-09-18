@@ -278,7 +278,7 @@ export default function Home() {
 
           <div className="queue-card">
             <div className="queue-header">
-              <div><p>PRINT QUEUE</p><span>而家有 {queue.length} 個 makers</span></div>
+              <div><p>PRINT QUEUE</p><span>點擊排隊格，用密碼改名或取消預約。</span></div>
             </div>
             <ol className="queue-list">
               {queue.length === 0 && <li className="queue-empty">暫時未有人排隊，攞第一個 JW coin 啦。</li>}
