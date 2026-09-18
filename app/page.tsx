@@ -1,7 +1,6 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import Image from 'next/image';
 import { Check, Clock3, Coins, Printer, Sparkles, UserRound } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
@@ -83,6 +82,19 @@ export default function Home() {
   );
 
   const isLive = printer.bridge === 'live' && printer.connected;
+  const printerAnimation = printer.hasError || printer.state === 'ERROR'
+    ? 'error'
+    : printer.state === 'PRINTING'
+      ? 'printing'
+      : printer.state === 'PAUSED'
+        ? 'paused'
+        : 'idle';
+  const printerAlt = {
+    idle: '像素風 3D printer 已完成列印，正在待機',
+    printing: '像素風 3D printer 正在列印橙色小火箭',
+    paused: '像素風 3D printer 暫停列印',
+    error: '像素風 3D printer 顯示錯誤警號',
+  }[printerAnimation];
   const bridgeLabel = isLive
     ? `P1S · ${printer.state}`
     : printer.bridge === 'setup_required'
@@ -137,10 +149,20 @@ export default function Home() {
             <p className="intro">揀一個 print slot，留低你個名，再將銀仔投落部機。就係咁簡單。</p>
           </div>
 
-          <div className={`printer-stage ${isDropping ? 'is-dropping' : ''}`}>
+          <div className={`printer-stage state-${printerAnimation} ${isDropping ? 'is-dropping' : ''}`}>
             <div className="scanlines" aria-hidden="true" />
             <div className="coin-drop" aria-hidden="true">${coin.value}</div>
-            <Image src="/pixel-printer.png" alt="一部正在列印橙色小火箭的像素風 3D printer" width={900} height={900} priority className="printer-art" />
+            <picture className="printer-picture">
+              <source media="(prefers-reduced-motion: reduce)" srcSet="/pixel-printer.png" />
+              <img
+                key={printerAnimation}
+                src={`/printer-${printerAnimation}.gif`}
+                alt={printerAlt}
+                width={512}
+                height={512}
+                className="printer-art"
+              />
+            </picture>
             <div className="print-label"><span>{isLive ? 'LIVE FROM P1S' : 'DEMO PREVIEW'}</span><strong>{printer.filename}</strong></div>
           </div>
 
