@@ -107,6 +107,7 @@ h1 span { color: var(--primary); }
 .name-dialog { position: relative; width: min(100%, 390px); border-radius: 0; border: 1px solid #486078; background: #0b141f; color: #f4f3e8; box-shadow: 12px 12px 0 #020407, 0 0 60px #0aaee72b; padding: 24px; animation: modalPop .2s steps(3); }
 .dialog-header { display: grid; grid-template-columns: 58px 1fr; column-gap: 16px; align-items: center; }
 .dialog-token { grid-row: span 2; display: grid; place-items: center; width: 54px; aspect-ratio: 1; border-radius: 50%; color: #5b3400; background: #ffc94c; border: 7px double #8e5b00; box-shadow: 5px 6px 0 #5d3200; font-size: 14px; font-weight: 1000; animation: tokenPop .28s steps(3); }
+.jar-coin, .coin-drop, .dialog-token { border: 0; border-radius: 0; background: url('/jw-coin-base.png') center / contain no-repeat; color: #4d2600; box-shadow: none; filter: drop-shadow(3px 4px 0 #5d3200); image-rendering: pixelated; text-shadow: 1px 1px 0 #ffd45a; }
 .dialog-header h2 { align-self: end; margin: 0; color: #fff; font-size: 17px; font-weight: 1000; letter-spacing: -.04em; }
 .dialog-header p { align-self: start; margin: 5px 0 0; color: #8296a6; font-size: 9px; line-height: 1.65; }
 .modal-close { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 31px; height: 31px; border: 0; background: transparent; color: #7790a2; }
