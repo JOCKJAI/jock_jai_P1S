@@ -172,7 +172,7 @@ export default function Home() {
               disabled={isDropping}
               aria-label="從玻璃錢罐攞一個 JW coin"
             >
-              <img src="/coin-jar.png" alt="裝滿金幣的像素風玻璃錢罐" width={1254} height={1254} />
+              <img src="/coin-jar-v3.png" alt="裝滿金幣的像素風玻璃錢罐" width={1254} height={1254} />
               <span className="jar-coin" aria-hidden="true">{coin.mark}</span>
               <span className="jar-hint">攞幣排隊</span>
             </button>
