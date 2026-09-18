@@ -131,6 +131,7 @@ h1 span { color: var(--primary); }
 .wait-time svg { width: 16px; grid-row: span 2; } .wait-time strong { font-size: 13px; line-height: 1; } .wait-time small { font-size: 7px; color: #637787; }
 .queue-list { list-style: none; margin: 14px 0 0; padding: 0; max-height: 230px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #33475b transparent; }
 .queue-list li { min-height: 53px; display: grid; grid-template-columns: 27px 34px minmax(0,1fr) auto; gap: 9px; align-items: center; padding: 8px 9px; border-bottom: 1px solid #1e2a37; }
+.queue-list li.queue-empty { display: grid; grid-template-columns: 1fr; place-items: center; min-height: 90px; color: #617687; font-size: 8px; text-align: center; }
 .queue-list li.active-job { background: #101e23; border-left: 2px solid var(--primary); }
 .queue-number { color: #516474; font-size: 8px; }
 .avatar { width: 30px; height: 30px; display: grid; place-items: center; color: #071018; background: var(--avatar); font-size: 11px; font-weight: 1000; box-shadow: 3px 3px 0 color-mix(in srgb, var(--avatar), #000 55%); }

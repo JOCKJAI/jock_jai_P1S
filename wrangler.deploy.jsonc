@@ -1,0 +1,23 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "jock-jai-p1s",
+  "main": "dist/server/index.js",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "no_bundle": true,
+  "rules": [
+    { "type": "ESModule", "globs": ["**/*.js", "**/*.mjs"] }
+  ],
+  "assets": {
+    "directory": "dist/client"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "coinprint-queue",
+      "database_id": "01b44ff3-f845-48d5-980b-a25b28da91f6",
+      "migrations_dir": ".openai/drizzle"
+    }
+  ],
+  "observability": { "enabled": true }
+}

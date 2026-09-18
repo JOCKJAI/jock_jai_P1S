@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-type QueueItem = { id: number; name: string; color: string };
+type QueueItem = { id: string; name: string; color: string };
 type PrinterStatus = {
   bridge: 'demo' | 'setup_required' | 'connecting' | 'connected' | 'live' | 'offline' | 'error';
   connected: boolean;
@@ -26,12 +26,6 @@ type PrinterStatus = {
 
 const coin = { mark: 'JW' };
 
-const starterQueue: QueueItem[] = [
-  { id: 1, name: 'MING', color: '#ff774f' },
-  { id: 2, name: 'JOYCE', color: '#abf23e' },
-  { id: 3, name: 'KAI', color: '#4fd7ff' },
-];
-
 const demoPrinter: PrinterStatus = {
   bridge: 'demo', connected: false, model: 'Bambu Lab P1S', state: 'PRINTING',
   filename: 'ROCKET_V3.3MF', progress: 68, remainingMinutes: 24,
@@ -41,39 +35,31 @@ const demoPrinter: PrinterStatus = {
 
 export default function Home() {
   const [name, setName] = useState('');
-  const [queue, setQueue] = useState<QueueItem[]>(starterQueue);
+  const [queue, setQueue] = useState<QueueItem[]>([]);
   const [isDropping, setIsDropping] = useState(false);
   const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
   const [notice, setNotice] = useState('');
   const [printer, setPrinter] = useState<PrinterStatus>(demoPrinter);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem('coinprint-queue');
-    if (saved) {
-      try {
-        setQueue(JSON.parse(saved));
-      } catch {
-        window.localStorage.removeItem('coinprint-queue');
-      }
-    }
-  }, []);
-
-  useEffect(() => {
     let active = true;
 
-    async function refreshPrinter() {
+    async function refreshState() {
       try {
-        const response = await fetch('http://127.0.0.1:8789/status', { cache: 'no-store' });
-        if (!response.ok) throw new Error('Bridge unavailable');
-        const next = await response.json() as PrinterStatus;
-        if (active) setPrinter(next);
+        const response = await fetch('/api/state', { cache: 'no-store' });
+        if (!response.ok) throw new Error('Live state unavailable');
+        const next = await response.json() as { queue: QueueItem[]; printer: PrinterStatus | null };
+        if (active) {
+          setQueue(next.queue);
+          setPrinter(next.printer || demoPrinter);
+        }
       } catch {
         if (active) setPrinter((current) => current.bridge === 'demo' ? current : { ...current, bridge: 'offline', connected: false });
       }
     }
 
-    refreshPrinter();
-    const timer = window.setInterval(refreshPrinter, 2500);
+    refreshState();
+    const timer = window.setInterval(refreshState, 5000);
     return () => { active = false; window.clearInterval(timer); };
   }, []);
 
@@ -116,7 +102,7 @@ export default function Home() {
         ? 'P1S BRIDGE · CONNECTING'
         : 'P1S BRIDGE · DEMO MODE';
 
-  function joinQueue(event: FormEvent<HTMLFormElement>) {
+  async function joinQueue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const cleanName = name.trim().slice(0, 16);
     if (!cleanName || isDropping) return;
@@ -124,20 +110,23 @@ export default function Home() {
     setIsDropping(true);
     setNotice('');
 
-    window.setTimeout(() => {
-      const newQueue = [
-        ...queue,
-        {
-          id: Date.now(),
-          name: cleanName.toUpperCase(),
-          color: '#abf23e',
-        },
-      ];
-      setQueue(newQueue);
-      window.localStorage.setItem('coinprint-queue', JSON.stringify(newQueue));
-      setName('');
-      setIsDropping(false);
-      setNotice(`${cleanName}，你已經排到第 ${newQueue.length} 位！`);
+    window.setTimeout(async () => {
+      try {
+        const response = await fetch('/api/queue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: cleanName }),
+        });
+        if (!response.ok) throw new Error('Queue request failed');
+        const result = await response.json() as { queue: QueueItem[] };
+        setQueue(result.queue);
+        setNotice(`${cleanName}，你已經排到第 ${result.queue.length} 位！`);
+      } catch {
+        setNotice('未能加入隊伍，請再試一次。');
+      } finally {
+        setName('');
+        setIsDropping(false);
+      }
     }, 780);
   }
 
@@ -220,6 +209,7 @@ export default function Home() {
               <div><p>PRINT QUEUE</p><span>而家有 {queue.length} 個 makers</span></div>
             </div>
             <ol className="queue-list">
+              {queue.length === 0 && <li className="queue-empty">暫時未有人排隊，攞第一個 JW coin 啦。</li>}
               {queue.map((item, index) => (
                 <li key={item.id} className={index === 0 ? 'active-job' : ''}>
                   <span className="queue-number">{String(index + 1).padStart(2, '0')}</span>

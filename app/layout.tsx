@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'COINPRINT LAB — 3D Print Queue',
   description: 'Pick a coin, leave your name, and join the 3D printing queue.',
-  metadataBase: new URL('https://coinprint-lab.wanlong.chatgpt.site'),
+  metadataBase: new URL('https://jock-jai-p1s.mokyeung08.workers.dev'),
   openGraph: {
     title: 'COINPRINT LAB — 3D Print Queue',
     description: 'Pick a coin, leave your name, and join the 3D printing queue.',

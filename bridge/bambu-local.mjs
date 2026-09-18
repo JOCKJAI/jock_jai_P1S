@@ -24,6 +24,8 @@ const bridgePort = Number(process.env.BRIDGE_PORT || 8789);
 const printerHost = process.env.BAMBU_HOST?.trim();
 const printerSerial = process.env.BAMBU_SERIAL?.trim();
 const accessCode = process.env.BAMBU_ACCESS_CODE?.trim();
+const cloudStatusUrl = process.env.COINPRINT_STATUS_URL?.trim() || 'http://localhost:3000/api/printer';
+const cloudBridgeToken = process.env.COINPRINT_BRIDGE_TOKEN?.trim();
 const configured = Boolean(printerHost && printerSerial && accessCode);
 
 let status = {
@@ -43,6 +45,29 @@ let status = {
 };
 
 const printSnapshot = {};
+let lastPushError = '';
+
+async function publishStatus() {
+  const headers = { 'Content-Type': 'application/json' };
+  if (cloudBridgeToken) headers.Authorization = `Bearer ${cloudBridgeToken}`;
+
+  try {
+    const response = await fetch(cloudStatusUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(status),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    lastPushError = '';
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (message !== lastPushError) {
+      console.warn(`COINPRINT cloud sync paused: ${message}`);
+      lastPushError = message;
+    }
+  }
+}
 
 function numberOr(value, fallback = 0) {
   const parsed = Number(value);
@@ -111,6 +136,7 @@ if (configured) {
   client.on('message', (_topic, message) => {
     try {
       updateStatus(JSON.parse(message.toString('utf8')));
+      void publishStatus();
     } catch {
       // Ignore malformed printer packets and retain the last known good state.
     }
@@ -126,6 +152,8 @@ if (configured) {
 
   setInterval(requestFullStatus, 30000).unref();
 }
+
+setInterval(() => void publishStatus(), 10_000).unref();
 
 const server = http.createServer((request, response) => {
   const origin = request.headers.origin;
