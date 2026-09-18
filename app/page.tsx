@@ -1,13 +1,13 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Check, Clock3, Coins, Printer, Sparkles, UserRound } from 'lucide-react';
+import { FormEvent, useEffect, useState } from 'react';
+import { Check, Coins, Printer, Sparkles, UserRound } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
-type QueueItem = { id: number; name: string; minutes: number; color: string };
+type QueueItem = { id: number; name: string; color: string };
 type PrinterStatus = {
   bridge: 'demo' | 'setup_required' | 'connecting' | 'connected' | 'live' | 'offline' | 'error';
   connected: boolean;
@@ -24,12 +24,12 @@ type PrinterStatus = {
   updatedAt: string | null;
 };
 
-const coin = { value: 1, minutes: 15, label: 'PRINT SLOT' };
+const coin = { mark: 'JW' };
 
 const starterQueue: QueueItem[] = [
-  { id: 1, name: 'MING', minutes: 24, color: '#ff774f' },
-  { id: 2, name: 'JOYCE', minutes: 15, color: '#abf23e' },
-  { id: 3, name: 'KAI', minutes: 30, color: '#4fd7ff' },
+  { id: 1, name: 'MING', color: '#ff774f' },
+  { id: 2, name: 'JOYCE', color: '#abf23e' },
+  { id: 3, name: 'KAI', color: '#4fd7ff' },
 ];
 
 const demoPrinter: PrinterStatus = {
@@ -76,11 +76,6 @@ export default function Home() {
     return () => { active = false; window.clearInterval(timer); };
   }, []);
 
-  const totalWait = useMemo(
-    () => queue.reduce((sum, item) => sum + item.minutes, 0),
-    [queue],
-  );
-
   const isLive = printer.bridge === 'live' && printer.connected;
   const printerAnimation = printer.hasError || printer.state === 'ERROR'
     ? 'error'
@@ -116,7 +111,6 @@ export default function Home() {
         {
           id: Date.now(),
           name: cleanName.toUpperCase(),
-          minutes: coin.minutes,
           color: '#abf23e',
         },
       ];
@@ -151,7 +145,7 @@ export default function Home() {
 
           <div className={`printer-stage state-${printerAnimation} ${isDropping ? 'is-dropping' : ''}`}>
             <div className="scanlines" aria-hidden="true" />
-            <div className="coin-drop" aria-hidden="true">${coin.value}</div>
+            <div className="coin-drop" aria-hidden="true">{coin.mark}</div>
             <picture className="printer-picture">
               <source media="(prefers-reduced-motion: reduce)" srcSet="/pixel-printer.png" />
               <img
@@ -195,8 +189,7 @@ export default function Home() {
               <legend><span>1</span> YOUR COIN</legend>
               <div className="coin-grid single-coin">
                 <div className="coin-option selected">
-                  <span className="coin-face">${coin.value}</span>
-                  <span className="coin-details"><strong>{coin.minutes} MIN</strong><small>{coin.label}</small></span>
+                  <span className="coin-face">{coin.mark}</span>
                 </div>
               </div>
             </fieldset>
@@ -210,7 +203,7 @@ export default function Home() {
             </label>
 
             <Button type="submit" disabled={!name.trim() || isDropping} className="insert-button">
-              <Coins aria-hidden="true" /> {isDropping ? 'COIN DROPPING...' : `INSERT $${coin.value} COIN`} <span aria-hidden="true">→</span>
+              <Coins aria-hidden="true" /> {isDropping ? 'COIN DROPPING...' : `INSERT ${coin.mark} COIN`} <span aria-hidden="true">→</span>
             </Button>
             <p className={`success-message ${notice ? 'show' : ''}`} aria-live="polite"><Check aria-hidden="true" /> {notice}</p>
           </form>
@@ -218,15 +211,14 @@ export default function Home() {
           <div className="queue-card">
             <div className="queue-header">
               <div><p>PRINT QUEUE</p><span>而家有 {queue.length} 個 makers</span></div>
-              <div className="wait-time"><Clock3 aria-hidden="true" /><strong>~{totalWait}</strong><small>MIN</small></div>
             </div>
             <ol className="queue-list">
               {queue.map((item, index) => (
                 <li key={item.id} className={index === 0 ? 'active-job' : ''}>
                   <span className="queue-number">{String(index + 1).padStart(2, '0')}</span>
                   <span className="avatar" style={{ '--avatar': item.color } as React.CSSProperties}>{item.name.slice(0, 1)}</span>
-                  <span className="queue-name"><strong>{item.name}</strong><small>{index === 0 ? 'PRINTING NOW' : `${item.minutes} MIN SLOT`}</small></span>
-                  <span className="queue-state">{index === 0 ? <i className="mini-bars" /> : index === 1 ? 'NEXT' : `${item.minutes}m`}</span>
+                  <span className="queue-name"><strong>{item.name}</strong><small>{index === 0 ? 'PRINTING NOW' : 'IN QUEUE'}</small></span>
+                  <span className="queue-state">{index === 0 ? <i className="mini-bars" /> : index === 1 ? 'NEXT' : 'QUEUED'}</span>
                 </li>
               ))}
             </ol>

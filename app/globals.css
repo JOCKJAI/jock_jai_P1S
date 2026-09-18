@@ -95,7 +95,7 @@ legend span, .name-field b { display: grid; place-items: center; width: 21px; he
 .coin-option:nth-child(2) .coin-face { color: #153c49; background: #83e9ff; border-color: #33869b; box-shadow: 4px 4px 0 #174b57; }
 .coin-option:nth-child(3) .coin-face { color: #223d08; background: #b7ff41; border-color: #5f9916; }
 .coin-option strong { font-size: 9px; } .coin-option small { font-size: 7px; color: #657685; text-transform: uppercase; }
-.single-coin .coin-option { min-height: 82px; flex-direction: row; justify-content: center; gap: 18px; padding: 11px 18px; }
+.single-coin .coin-option { min-height: 82px; flex-direction: row; justify-content: center; padding: 11px 18px; }
 .single-coin .coin-face { margin: 0; }
 .coin-details { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
 .coin-details strong { font-size: 14px; color: #fff; }
