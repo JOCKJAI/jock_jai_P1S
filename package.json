@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "vinext dev",
     "bridge": "node bridge/bambu-local.mjs",
+    "bridge:install": "node bridge/install-macos-service.mjs",
     "bridge:setup:cloud": "node bridge/setup-bambu-cloud.mjs",
     "bridge:setup:cloud:web": "node bridge/setup-bambu-cloud.mjs --web",
     "local": "node bridge/start-local.mjs",
