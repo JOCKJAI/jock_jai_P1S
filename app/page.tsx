@@ -115,6 +115,9 @@ export default function Home() {
     paused: '像素風 3D printer 暫停列印',
     error: '像素風 3D printer 顯示錯誤警號',
   }[printerAnimation];
+  const printProgress = handoff.readyForNext
+    ? 0
+    : Math.max(0, Math.min(100, Math.round(printer.progress)));
   const bridgeLabel = handoff.readyForNext
     ? 'P1S · EMPTY / READY'
     : isLive
@@ -287,17 +290,39 @@ export default function Home() {
               <span className="jar-coin" aria-hidden="true"><span>{coin.mark}</span></span>
               <span className="jar-hint">攞幣排隊</span>
             </button>
-            <picture className="printer-picture">
-              <source media="(prefers-reduced-motion: reduce)" srcSet="/key-visual-printer.png" />
-              <img
-                key={printerAnimation}
-                src={`/printer-kv-${printerAnimation}.gif`}
-                alt={printerAlt}
-                width={473}
-                height={512}
-                className="printer-art"
-              />
-            </picture>
+            <div
+              className="printer-picture"
+              style={{
+                '--print-progress': `${printProgress}%`,
+                '--rocket-line-bottom': `${35.9 + printProgress * 0.179}%`,
+              } as React.CSSProperties}
+            >
+              <picture>
+                <source media="(prefers-reduced-motion: reduce)" srcSet="/key-visual-printer.png" />
+                <img
+                  key={printerAnimation}
+                  src={`/printer-kv-${printerAnimation}.gif`}
+                  alt={printerAlt}
+                  width={473}
+                  height={512}
+                  className="printer-art"
+                />
+              </picture>
+              {printerAnimation === 'printing' && (
+                <>
+                  <span className="printer-spool-layer" aria-hidden="true">
+                    <img src="/key-visual-printer.png" alt="" />
+                  </span>
+                  <span className="rocket-unbuilt" aria-hidden="true" />
+                  <span className="rocket-live-layer" aria-hidden="true">
+                    <img src="/key-visual-printer.png" alt="" />
+                  </span>
+                  <span className="rocket-layer-line" aria-hidden="true">
+                    <b>{printProgress}%</b>
+                  </span>
+                </>
+              )}
+            </div>
             <div className="print-label">
               <span>{handoff.readyForNext ? 'PRINTER EMPTY' : isLive ? 'LIVE FROM P1S' : 'DEMO PREVIEW'}</span>
               <strong>{handoff.readyForNext ? queue[0] ? `NEXT · ${queue[0].name}` : 'READY TO USE' : printer.filename}</strong>
