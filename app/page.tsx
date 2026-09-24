@@ -116,8 +116,11 @@ export default function Home() {
     error: '像素風 3D printer 顯示錯誤警號',
   }[printerAnimation];
   const printerAnimationSrc = printerAnimation === 'printing'
-    ? '/printer-kv-printing-v2.gif'
+    ? '/printer-kv-printing-v3.gif'
     : `/printer-kv-${printerAnimation}.gif`;
+  const printerStaticSrc = printerAnimation === 'printing'
+    ? '/key-visual-printer-v2.png'
+    : '/key-visual-printer.png';
   const printProgress = handoff.readyForNext
     ? 0
     : Math.max(0, Math.min(100, Math.round(printer.progress)));
@@ -297,11 +300,11 @@ export default function Home() {
               className="printer-picture"
               style={{
                 '--print-progress': `${printProgress}%`,
-                '--rocket-line-bottom': `${35.9 + printProgress * 0.179}%`,
+                '--rocket-line-bottom': `${38.3 + printProgress * 0.17}%`,
               } as React.CSSProperties}
             >
               <picture>
-                <source media="(prefers-reduced-motion: reduce)" srcSet="/key-visual-printer.png" />
+                <source media="(prefers-reduced-motion: reduce)" srcSet={printerStaticSrc} />
                 <img
                   key={printerAnimation}
                   src={printerAnimationSrc}
@@ -315,7 +318,7 @@ export default function Home() {
                 <>
                   <span className="rocket-unbuilt" aria-hidden="true" />
                   <span className="rocket-live-layer" aria-hidden="true">
-                    <img src="/key-visual-printer.png" alt="" />
+                    <img src={printerStaticSrc} alt="" />
                   </span>
                   <span className="rocket-layer-line" aria-hidden="true">
                     <b>{printProgress}%</b>
