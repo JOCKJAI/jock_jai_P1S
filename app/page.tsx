@@ -100,18 +100,24 @@ export default function Home() {
   }, [isNameDialogOpen, editItem, isPickupDialogOpen]);
 
   const isLive = printer.bridge === 'live' && printer.connected;
+  const isPrintCompleted = !handoff.readyForNext
+    && queue.length > 0
+    && (printer.progress >= 100 || ['FINISH', 'IDLE', 'READY'].includes(printer.state));
   const printerAnimation = handoff.readyForNext
     ? 'idle'
     : printer.hasError || printer.state === 'ERROR'
     ? 'error'
-    : printer.state === 'PRINTING'
-      ? 'printing'
-      : printer.state === 'PAUSED'
-        ? 'paused'
-        : 'idle';
+      : isPrintCompleted
+        ? 'completed'
+        : printer.state === 'PRINTING'
+          ? 'printing'
+          : printer.state === 'PAUSED'
+            ? 'paused'
+            : 'idle';
   const printerAlt = {
     idle: '像素風 3D printer 已完成列印，正在待機',
     printing: '像素風 3D printer 正在列印橙色小火箭',
+    completed: '像素風 3D printer 投射 COMPLETED 完成提示',
     paused: '像素風 3D printer 暫停列印',
     error: '像素風 3D printer 顯示錯誤警號',
   }[printerAnimation];
@@ -120,12 +126,16 @@ export default function Home() {
     : `/printer-kv-${printerAnimation}.gif`;
   const printerStaticSrc = printerAnimation === 'printing'
     ? '/key-visual-printer-v2.png'
-    : '/key-visual-printer.png';
+    : printerAnimation === 'completed'
+      ? '/key-visual-printer-completed.png'
+      : '/key-visual-printer.png';
   const printProgress = handoff.readyForNext
     ? 0
     : Math.max(0, Math.min(100, Math.round(printer.progress)));
   const bridgeLabel = handoff.readyForNext
     ? 'P1S · EMPTY / READY'
+    : isPrintCompleted
+      ? 'P1S · COMPLETED'
     : isLive
       ? `P1S · ${printer.state}`
     : printer.bridge === 'setup_required'
@@ -133,9 +143,7 @@ export default function Home() {
       : printer.bridge === 'connecting' || printer.bridge === 'connected'
         ? 'P1S BRIDGE · CONNECTING'
         : 'P1S BRIDGE · DEMO MODE';
-  const canMarkPickedUp = !handoff.readyForNext
-    && queue.length > 0
-    && (printer.progress >= 100 || ['FINISH', 'IDLE', 'READY'].includes(printer.state));
+  const canMarkPickedUp = isPrintCompleted;
 
   async function joinQueue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -328,20 +336,22 @@ export default function Home() {
             </div>
             <div className="print-label">
               <span>{handoff.readyForNext ? 'PRINTER EMPTY' : isLive ? 'LIVE FROM P1S' : 'DEMO PREVIEW'}</span>
-              <strong>{handoff.readyForNext ? queue[0] ? `NEXT · ${queue[0].name}` : 'READY TO USE' : printer.filename}</strong>
+              <strong>{handoff.readyForNext ? queue[0] ? `NEXT · ${queue[0].name}` : 'READY TO USE' : isPrintCompleted ? 'COMPLETED · 請取件' : printer.filename}</strong>
             </div>
           </div>
 
           <div className={`current-job ${handoff.readyForNext ? 'is-ready' : ''}`}>
             <div className="job-icon"><Printer aria-hidden="true" /></div>
             <div className="job-meta">
-              <div><strong>{handoff.readyForNext ? 'PRINTER 已空' : printer.state === 'IDLE' ? 'P1S READY' : printer.filename}</strong><span>{handoff.readyForNext ? 'READY' : `${printer.progress}%`}</span></div>
-              <div className="pixel-progress"><i style={{ width: `${handoff.readyForNext ? 0 : printer.progress}%` }} /></div>
+              <div><strong>{handoff.readyForNext ? 'PRINTER 已空' : isPrintCompleted ? 'PRINT COMPLETED' : printer.state === 'IDLE' ? 'P1S READY' : printer.filename}</strong><span>{handoff.readyForNext ? 'READY' : isPrintCompleted ? 'COMPLETED' : `${printer.progress}%`}</span></div>
+              <div className="pixel-progress"><i style={{ width: `${handoff.readyForNext ? 0 : isPrintCompleted ? 100 : printer.progress}%` }} /></div>
               <p>
                 {handoff.readyForNext
                   ? queue[0]
                     ? `下一位：${queue[0].name} · 可以開始使用 P1S`
                     : '暫時未有人排隊 · P1S 可以使用'
+                  : isPrintCompleted
+                  ? '作品已完成 · 取件後請按「已取件」讓下一位使用'
                   : isLive
                   ? `Layer ${printer.layer || '—'} / ${printer.totalLayers || '—'} · ${printer.remainingMinutes} mins left · ${Math.round(printer.nozzleTemp)}° / ${Math.round(printer.bedTemp)}°`
                   : printer.bridge === 'setup_required'
