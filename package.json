@@ -9,6 +9,7 @@
     "dev": "vinext dev",
     "bridge": "node bridge/bambu-local.mjs",
     "bridge:setup:cloud": "node bridge/setup-bambu-cloud.mjs",
+    "bridge:setup:cloud:web": "node bridge/setup-bambu-cloud.mjs --web",
     "local": "node bridge/start-local.mjs",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
