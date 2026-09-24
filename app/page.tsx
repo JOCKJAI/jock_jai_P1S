@@ -334,7 +334,7 @@ export default function Home() {
             )}
           </div>
           <div className={`bridge-note ${isLive ? 'live' : ''}`}>
-            <span /> {isLive ? 'REAL-TIME P1S STATUS' : 'LOCAL BRIDGE · READ ONLY'}
+            <span /> {isLive ? 'REAL-TIME P1S STATUS' : 'BAMBU CLOUD BRIDGE · READ ONLY'}
           </div>
         </section>
 
