@@ -1,13 +1,14 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
-import { Check, Coins, LockKeyhole, Printer, Sparkles, Trash2, UserRound, X } from 'lucide-react';
+import { Check, Coins, LockKeyhole, PackageCheck, Printer, Sparkles, Trash2, UserRound, X } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 type QueueItem = { id: string; name: string; color: string };
+type PrinterHandoff = { readyForNext: boolean; pickedUpName: string | null; pickedUpAt: string | null };
 type PrinterStatus = {
   bridge: 'demo' | 'setup_required' | 'connecting' | 'connected' | 'live' | 'offline' | 'error';
   connected: boolean;
@@ -44,6 +45,10 @@ export default function Home() {
   const [editPassword, setEditPassword] = useState('');
   const [editError, setEditError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [handoff, setHandoff] = useState<PrinterHandoff>({ readyForNext: false, pickedUpName: null, pickedUpAt: null });
+  const [isPickupDialogOpen, setIsPickupDialogOpen] = useState(false);
+  const [isPickingUp, setIsPickingUp] = useState(false);
+  const [pickupError, setPickupError] = useState('');
   const [notice, setNotice] = useState('');
   const [printer, setPrinter] = useState<PrinterStatus>(demoPrinter);
 
@@ -54,10 +59,11 @@ export default function Home() {
       try {
         const response = await fetch('/api/state', { cache: 'no-store' });
         if (!response.ok) throw new Error('Live state unavailable');
-        const next = await response.json() as { queue: QueueItem[]; printer: PrinterStatus | null };
+        const next = await response.json() as { queue: QueueItem[]; printer: PrinterStatus | null; handoff?: PrinterHandoff };
         if (active) {
           setQueue(next.queue);
           setPrinter(next.printer || demoPrinter);
+          setHandoff(next.handoff || { readyForNext: false, pickedUpName: null, pickedUpAt: null });
         }
       } catch {
         if (active) setPrinter((current) => current.bridge === 'demo' ? current : { ...current, bridge: 'offline', connected: false });
@@ -70,7 +76,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!isNameDialogOpen && !editItem) return;
+    if (!isNameDialogOpen && !editItem && !isPickupDialogOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     const closeOnEscape = (event: KeyboardEvent) => {
@@ -82,6 +88,8 @@ export default function Home() {
         setEditName('');
         setEditPassword('');
         setEditError('');
+        setIsPickupDialogOpen(false);
+        setPickupError('');
       }
     };
     window.addEventListener('keydown', closeOnEscape);
@@ -89,10 +97,12 @@ export default function Home() {
       document.body.style.overflow = previousOverflow;
       window.removeEventListener('keydown', closeOnEscape);
     };
-  }, [isNameDialogOpen, editItem]);
+  }, [isNameDialogOpen, editItem, isPickupDialogOpen]);
 
   const isLive = printer.bridge === 'live' && printer.connected;
-  const printerAnimation = printer.hasError || printer.state === 'ERROR'
+  const printerAnimation = handoff.readyForNext
+    ? 'idle'
+    : printer.hasError || printer.state === 'ERROR'
     ? 'error'
     : printer.state === 'PRINTING'
       ? 'printing'
@@ -105,13 +115,18 @@ export default function Home() {
     paused: '像素風 3D printer 暫停列印',
     error: '像素風 3D printer 顯示錯誤警號',
   }[printerAnimation];
-  const bridgeLabel = isLive
-    ? `P1S · ${printer.state}`
+  const bridgeLabel = handoff.readyForNext
+    ? 'P1S · EMPTY / READY'
+    : isLive
+      ? `P1S · ${printer.state}`
     : printer.bridge === 'setup_required'
       ? 'P1S BRIDGE · SETUP NEEDED'
       : printer.bridge === 'connecting' || printer.bridge === 'connected'
         ? 'P1S BRIDGE · CONNECTING'
         : 'P1S BRIDGE · DEMO MODE';
+  const canMarkPickedUp = !handoff.readyForNext
+    && queue.length > 0
+    && (printer.progress >= 100 || ['FINISH', 'IDLE', 'READY'].includes(printer.state));
 
   async function joinQueue(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -202,6 +217,41 @@ export default function Home() {
     }
   }
 
+  function closePickupDialog() {
+    if (isPickingUp) return;
+    setIsPickupDialogOpen(false);
+    setPickupError('');
+  }
+
+  async function confirmPickup() {
+    if (!canMarkPickedUp || isPickingUp) return;
+    setIsPickingUp(true);
+    setPickupError('');
+    try {
+      const response = await fetch('/api/queue/pickup', { method: 'POST' });
+      const result = await response.json() as {
+        queue?: QueueItem[];
+        handoff?: PrinterHandoff;
+        pickedUpName?: string;
+        error?: string;
+      };
+      if (!response.ok || !result.queue || !result.handoff) {
+        throw new Error(result.error || '未能完成取件');
+      }
+      setQueue(result.queue);
+      setHandoff(result.handoff);
+      const nextName = result.queue[0]?.name;
+      setNotice(nextName
+        ? `${result.pickedUpName} 已取件，printer 已空。下一位 ${nextName} 可以開始。`
+        : `${result.pickedUpName} 已取件，printer 已空。`);
+      setIsPickupDialogOpen(false);
+    } catch (error) {
+      setPickupError(error instanceof Error ? error.message : '未能完成取件');
+    } finally {
+      setIsPickingUp(false);
+    }
+  }
+
   return (
     <main className="min-h-dvh overflow-hidden bg-background text-foreground">
       <header className="topbar">
@@ -248,22 +298,40 @@ export default function Home() {
                 className="printer-art"
               />
             </picture>
-            <div className="print-label"><span>{isLive ? 'LIVE FROM P1S' : 'DEMO PREVIEW'}</span><strong>{printer.filename}</strong></div>
+            <div className="print-label">
+              <span>{handoff.readyForNext ? 'PRINTER EMPTY' : isLive ? 'LIVE FROM P1S' : 'DEMO PREVIEW'}</span>
+              <strong>{handoff.readyForNext ? queue[0] ? `NEXT · ${queue[0].name}` : 'READY TO USE' : printer.filename}</strong>
+            </div>
           </div>
 
-          <div className="current-job">
+          <div className={`current-job ${handoff.readyForNext ? 'is-ready' : ''}`}>
             <div className="job-icon"><Printer aria-hidden="true" /></div>
             <div className="job-meta">
-              <div><strong>{printer.state === 'IDLE' ? 'P1S READY' : printer.filename}</strong><span>{printer.progress}%</span></div>
-              <div className="pixel-progress"><i style={{ width: `${printer.progress}%` }} /></div>
+              <div><strong>{handoff.readyForNext ? 'PRINTER 已空' : printer.state === 'IDLE' ? 'P1S READY' : printer.filename}</strong><span>{handoff.readyForNext ? 'READY' : `${printer.progress}%`}</span></div>
+              <div className="pixel-progress"><i style={{ width: `${handoff.readyForNext ? 0 : printer.progress}%` }} /></div>
               <p>
-                {isLive
+                {handoff.readyForNext
+                  ? queue[0]
+                    ? `下一位：${queue[0].name} · 可以開始使用 P1S`
+                    : '暫時未有人排隊 · P1S 可以使用'
+                  : isLive
                   ? `Layer ${printer.layer || '—'} / ${printer.totalLayers || '—'} · ${printer.remainingMinutes} mins left · ${Math.round(printer.nozzleTemp)}° / ${Math.round(printer.bedTemp)}°`
                   : printer.bridge === 'setup_required'
                     ? 'Add your P1S details to .env.local to go live'
                     : 'Demo data · local P1S bridge is not connected'}
               </p>
             </div>
+            {!handoff.readyForNext && queue.length > 0 && (
+              <Button
+                type="button"
+                className="pickup-action"
+                onClick={() => { setPickupError(''); setIsPickupDialogOpen(true); }}
+                disabled={!canMarkPickedUp}
+                title={canMarkPickedUp ? '確認目前作品已經取走' : '完成列印後先可以確認取件'}
+              >
+                <PackageCheck aria-hidden="true" /> 已取件
+              </Button>
+            )}
           </div>
           <div className={`bridge-note ${isLive ? 'live' : ''}`}>
             <span /> {isLive ? 'REAL-TIME P1S STATUS' : 'LOCAL BRIDGE · READ ONLY'}
@@ -287,8 +355,8 @@ export default function Home() {
                   <button type="button" className="queue-row" onClick={() => openEditDialog(item)} aria-label={`修改 ${item.name} 排隊紀錄`}>
                     <span className="queue-number">{String(index + 1).padStart(2, '0')}</span>
                     <span className="avatar" style={{ '--avatar': item.color } as React.CSSProperties}>{item.name.slice(0, 1)}</span>
-                    <span className="queue-name"><strong>{item.name}</strong><small>{index === 0 ? 'PRINTING NOW' : 'IN QUEUE'}</small></span>
-                    <span className="queue-state">{index === 0 ? <i className="mini-bars" /> : index === 1 ? 'NEXT' : 'QUEUED'}</span>
+                    <span className="queue-name"><strong>{item.name}</strong><small>{index === 0 ? handoff.readyForNext ? 'YOUR TURN' : 'PRINTING NOW' : 'IN QUEUE'}</small></span>
+                    <span className="queue-state">{index === 0 ? handoff.readyForNext ? 'READY' : <i className="mini-bars" /> : index === 1 ? 'NEXT' : 'QUEUED'}</span>
                   </button>
                 </li>
               ))}
@@ -373,6 +441,28 @@ export default function Home() {
                 </Button>
               </div>
             </form>
+          </section>
+        </div>
+      )}
+
+      {isPickupDialogOpen && queue[0] && (
+        <div className="modal-layer" onMouseDown={(event) => { if (event.target === event.currentTarget) closePickupDialog(); }}>
+          <section className="name-dialog pickup-dialog" role="dialog" aria-modal="true" aria-labelledby="pickup-dialog-title" aria-describedby="pickup-dialog-description">
+            <button type="button" className="modal-close" onClick={closePickupDialog} disabled={isPickingUp} aria-label="關閉">
+              <X aria-hidden="true" />
+            </button>
+            <header className="dialog-header">
+              <div className="pickup-token" aria-hidden="true"><PackageCheck /></div>
+              <h2 id="pickup-dialog-title">確認已取件？</h2>
+              <p id="pickup-dialog-description">確認 {queue[0].name} 已經拎走作品。完成後會移除第一位，並顯示 printer 已空。</p>
+            </header>
+            <p className={`edit-feedback pickup-feedback ${pickupError ? 'show' : ''}`} role="alert">{pickupError}</p>
+            <div className="dialog-actions">
+              <Button type="button" variant="outline" onClick={closePickupDialog} disabled={isPickingUp}>返回</Button>
+              <Button type="button" className="confirm-pickup" onClick={confirmPickup} disabled={isPickingUp}>
+                <PackageCheck aria-hidden="true" /> {isPickingUp ? '處理中…' : '確認已取件'}
+              </Button>
+            </div>
           </section>
         </div>
       )}

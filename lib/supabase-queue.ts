@@ -102,6 +102,20 @@ export async function addSupabaseQueueItem(name: string, password: string) {
   return listSupabaseQueue();
 }
 
+export async function getSupabaseQueueHead(): Promise<QueueItem | null> {
+  const response = await request('queue_entries?select=id,name,color&order=created_at.asc,id.asc&limit=1');
+  const rows = await response.json() as QueueItem[];
+  return rows[0] || null;
+}
+
+export async function completeSupabaseQueueHead(expectedId: string) {
+  await request(`queue_entries?id=eq.${encodeURIComponent(expectedId)}`, {
+    method: 'DELETE',
+    headers: { Prefer: 'return=minimal' },
+  });
+  return listSupabaseQueue();
+}
+
 async function getProtectedRow(id: string) {
   const response = await request(
     `queue_entries?id=eq.${encodeURIComponent(id)}&select=id,edit_password_salt,edit_password_hash&limit=1`,

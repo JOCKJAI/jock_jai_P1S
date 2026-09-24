@@ -1,4 +1,4 @@
-import { ensureSchema, getBindings, type PrinterStatus, readPrinterStatus, writePrinterStatus } from '@/lib/cloud-db';
+import { clearPrinterHandoff, ensureSchema, getBindings, type PrinterStatus, readPrinterStatus, writePrinterStatus } from '@/lib/cloud-db';
 
 export const dynamic = 'force-dynamic';
 
@@ -52,6 +52,11 @@ export async function POST(request: Request) {
   if (!status) return Response.json({ error: 'Invalid printer status' }, { status: 400 });
 
   await ensureSchema(bindings.DB);
-  await writePrinterStatus(bindings.DB, status);
+  await Promise.all([
+    writePrinterStatus(bindings.DB, status),
+    status.state === 'PRINTING' && status.progress < 100
+      ? clearPrinterHandoff(bindings.DB)
+      : Promise.resolve(),
+  ]);
   return Response.json({ ok: true });
 }

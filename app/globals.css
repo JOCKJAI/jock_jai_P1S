@@ -75,7 +75,9 @@ h1 span { color: var(--primary); }
 .is-dropping .coin-drop { display: grid; animation: coinDrop .78s cubic-bezier(.3,.8,.5,1) forwards; }
 .is-dropping .printer-art { animation: machineShake .12s steps(2) .63s 2; }
 
-.current-job { position: relative; z-index: 4; max-width: 620px; margin: 0 auto; display: grid; grid-template-columns: 46px 1fr; gap: 14px; align-items: center; border: 1px solid #31445a; background: #0d1722e8; padding: 13px 16px; box-shadow: 8px 8px 0 #05080d; }
+.current-job { position: relative; z-index: 4; max-width: 680px; margin: 0 auto; display: grid; grid-template-columns: 46px minmax(0,1fr) auto; gap: 14px; align-items: center; border: 1px solid #31445a; background: #0d1722e8; padding: 13px 16px; box-shadow: 8px 8px 0 #05080d; }
+.current-job.is-ready { border-color: #67982c; background: #101f18ed; box-shadow: 8px 8px 0 #05080d, 0 0 22px #b7ff411a; }
+.current-job.is-ready .job-icon { color: var(--primary); background: #15240d; border-color: #4f7228; }
 .job-icon { width: 43px; height: 43px; display: grid; place-items: center; color: var(--accent); background: #241410; border: 1px solid #593426; }
 .job-icon svg { width: 21px; }
 .job-meta > div:first-child { display: flex; justify-content: space-between; font-size: 10px; color: #e7f0f4; }
@@ -83,6 +85,10 @@ h1 span { color: var(--primary); }
 .pixel-progress { height: 7px; background: #263442; margin: 8px 0 6px; padding: 1px; }
 .pixel-progress i { display: block; height: 100%; width: 68%; background: repeating-linear-gradient(90deg, var(--primary) 0 8px, #6ecf2e 8px 11px); box-shadow: 0 0 8px #9cff354d; }
 .job-meta p { margin: 0; color: #697d8d; font-size: 8px; }
+.pickup-action { min-width: 88px; height: 42px; border-radius: 0; border: 1px solid #ff9a79; color: #180906; background: var(--accent); box-shadow: 4px 4px 0 #5d2418; font-size: 9px; font-weight: 1000; letter-spacing: .06em; }
+.pickup-action:hover { background: #ff916f; }
+.pickup-action:disabled { border-color: #354554; color: #667987; background: #17212b; box-shadow: none; cursor: not-allowed; opacity: .72; }
+.pickup-action svg { width: 15px; }
 .bridge-note { position: relative; z-index: 4; width: fit-content; margin: 18px auto 0; display: flex; align-items: center; gap: 7px; color: #647788; font-size: 8px; letter-spacing: .12em; }
 .bridge-note > span { width: 6px; height: 6px; background: #647788; }
 .bridge-note.live { color: var(--primary); }
@@ -112,6 +118,8 @@ h1 span { color: var(--primary); }
 .jar-coin > span { font-size: 8px; }
 .coin-drop > span { font-size: 11px; }
 .dialog-token > span { font-size: 10px; }
+.pickup-token { grid-row: span 2; display: grid; place-items: center; width: 54px; height: 54px; color: #0c1607; background: var(--primary); border: 1px solid #d8ff9d; box-shadow: 5px 6px 0 #40680b; }
+.pickup-token svg { width: 25px; }
 .dialog-header h2 { align-self: end; margin: 0; color: #fff; font-size: 17px; font-weight: 1000; letter-spacing: -.04em; }
 .dialog-header p { align-self: start; margin: 5px 0 0; color: #8296a6; font-size: 9px; line-height: 1.65; }
 .modal-close { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 31px; height: 31px; border: 0; background: transparent; color: #7790a2; }
@@ -125,6 +133,9 @@ h1 span { color: var(--primary); }
 .dialog-actions svg { width: 14px; }
 .confirm-coin { color: #081007; background: var(--primary); border: 1px solid #d6ff91; box-shadow: 4px 4px 0 #40680b; }
 .confirm-coin:hover { background: #c9ff73; }
+.confirm-pickup { color: #081007; background: var(--primary); border: 1px solid #d6ff91; box-shadow: 4px 4px 0 #40680b; }
+.confirm-pickup:hover { background: #c9ff73; }
+.pickup-feedback { margin: 15px 0 -8px; }
 .edit-actions { justify-content: space-between; }
 .danger-action { color: #ff8d7b; border-color: #6a342c; background: #1b0d0c; }
 .danger-action:hover { color: #fff; border-color: #ff755f; background: #391511; }
@@ -170,7 +181,7 @@ footer { min-height: 42px; display: flex; justify-content: space-between; align-
 
 @media (max-width: 640px) {
   .topbar { height: 64px; padding: 0 16px; } .brand { font-size: 14px; } .brand-mark { width: 31px; height: 31px; box-shadow: 3px 3px 0 #253445; } .queue-badge { font-size: 8px; }
-  .hero-panel { padding: 34px 19px 28px; } .intro { font-size: 11px; } .printer-stage { width: calc(100% + 20px); margin: -5px -10px -35px; } .jar-coin { width: 38px; } .jar-coin > span { font-size: 7px; } .jar-hint { font-size: 6px; padding: 5px 6px; } .print-label { display: none; } .current-job { grid-template-columns: 37px 1fr; padding: 10px; } .job-icon { width: 36px; height: 36px; }
+  .hero-panel { padding: 34px 19px 28px; } .intro { font-size: 11px; } .printer-stage { width: calc(100% + 20px); margin: -5px -10px -35px; } .jar-coin { width: 38px; } .jar-coin > span { font-size: 7px; } .jar-hint { font-size: 6px; padding: 5px 6px; } .print-label { display: none; } .current-job { grid-template-columns: 37px 1fr; padding: 10px; } .job-icon { width: 36px; height: 36px; } .pickup-action { grid-column: 1 / -1; width: 100%; }
   .control-panel { display: block; padding: 32px 19px; } .queue-card { margin-top: 26px; padding: 23px 0 0; border-left: 0; border-top: 1px solid #293847; }
   footer { gap: 16px; padding: 13px 19px; flex-direction: column; align-items: flex-start; }
 }
