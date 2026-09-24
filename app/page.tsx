@@ -115,6 +115,9 @@ export default function Home() {
     paused: '像素風 3D printer 暫停列印',
     error: '像素風 3D printer 顯示錯誤警號',
   }[printerAnimation];
+  const printerAnimationSrc = printerAnimation === 'printing'
+    ? '/printer-kv-printing-v2.gif'
+    : `/printer-kv-${printerAnimation}.gif`;
   const printProgress = handoff.readyForNext
     ? 0
     : Math.max(0, Math.min(100, Math.round(printer.progress)));
@@ -301,7 +304,7 @@ export default function Home() {
                 <source media="(prefers-reduced-motion: reduce)" srcSet="/key-visual-printer.png" />
                 <img
                   key={printerAnimation}
-                  src={`/printer-kv-${printerAnimation}.gif`}
+                  src={printerAnimationSrc}
                   alt={printerAlt}
                   width={473}
                   height={512}
@@ -310,9 +313,6 @@ export default function Home() {
               </picture>
               {printerAnimation === 'printing' && (
                 <>
-                  <span className="printer-spool-layer" aria-hidden="true">
-                    <img src="/key-visual-printer.png" alt="" />
-                  </span>
                   <span className="rocket-unbuilt" aria-hidden="true" />
                   <span className="rocket-live-layer" aria-hidden="true">
                     <img src="/key-visual-printer.png" alt="" />
