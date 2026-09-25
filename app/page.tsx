@@ -34,6 +34,26 @@ const demoPrinter: PrinterStatus = {
   hasError: false, updatedAt: null,
 };
 
+function formatRemainingTime(totalMinutes: number) {
+  const minutes = Math.max(0, Math.round(totalMinutes));
+  if (!minutes) return 'CALCULATING';
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return hours ? `${hours}H ${remainder.toString().padStart(2, '0')}M` : `${minutes} MIN`;
+}
+
+function formatEstimatedFinish(totalMinutes: number, updatedAt: string | null) {
+  if (totalMinutes <= 0) return '--:--';
+  const reportedAt = updatedAt ? Date.parse(updatedAt) : Number.NaN;
+  const baseTime = Number.isFinite(reportedAt) ? reportedAt : Date.now();
+  return new Intl.DateTimeFormat('zh-HK', {
+    timeZone: 'Asia/Hong_Kong',
+    hour: '2-digit',
+    minute: '2-digit',
+    hourCycle: 'h23',
+  }).format(new Date(baseTime + totalMinutes * 60_000));
+}
+
 export default function Home() {
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
@@ -132,6 +152,8 @@ export default function Home() {
   const printProgress = handoff.readyForNext
     ? 0
     : Math.max(0, Math.min(100, Math.round(printer.progress)));
+  const remainingTimeLabel = formatRemainingTime(printer.remainingMinutes);
+  const estimatedFinishLabel = formatEstimatedFinish(printer.remainingMinutes, printer.updatedAt);
   const bridgeLabel = handoff.readyForNext
     ? 'P1S · EMPTY / READY'
     : isPrintCompleted
@@ -330,6 +352,16 @@ export default function Home() {
                   </span>
                   <span className="rocket-layer-line" aria-hidden="true">
                     <b>{printProgress}%</b>
+                  </span>
+                  <span
+                    className="eta-hologram"
+                    role="status"
+                    aria-label={`估計剩餘 ${remainingTimeLabel}，預計 ${estimatedFinishLabel} 完成`}
+                  >
+                    <i aria-hidden="true" />
+                    <small>EST. TIME LEFT</small>
+                    <strong>{remainingTimeLabel}</strong>
+                    <em>ETA {estimatedFinishLabel}</em>
                   </span>
                 </>
               )}
